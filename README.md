@@ -113,7 +113,7 @@ To handle IPN (Instant Payment Notification) requests, follow these steps:
 ```php
 try {
     $ipnResponse = $uddoktaPay->executePayment();
-    dd($ipnResponse) // 
+    dd($ipnResponse);
 } catch (\Exception $e) {
      dd("Error: " . $e->getMessage());
 }
