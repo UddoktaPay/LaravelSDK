@@ -61,9 +61,9 @@ $requestData = [
 
 try {
     $paymentUrl = $uddoktaPay->initPayment($requestData);
-    header('Location:' . $paymentUrl); // redirect user
+    return redirect($paymentUrl);
 } catch (\Exception $e) {
-    echo "Initialization Error: " . $e->getMessage();
+     dd("Initialization Error: " . $e->getMessage());
 }
 ```
 
@@ -96,9 +96,9 @@ $invoiceId = $request->invoice_id;
 ```php
 try {
     $response = $uddoktaPay->verifyPayment($invoiceId);
-    print_r($response); // Display the verification response
+    dd($response); // Display the verification response
 } catch (\Exception $e) {
-    echo "Verification Error: " . $e->getMessage();
+    dd("Verification Error: " . $e->getMessage());
 }
 ```
 
@@ -113,18 +113,9 @@ To handle IPN (Instant Payment Notification) requests, follow these steps:
 ```php
 try {
     $ipnResponse = $uddoktaPay->executePayment();
-    
-    // Process the IPN response
-    if ($ipnResponse['status']) {
-        // IPN request was valid, process $ipnResponse data
-        // ...
-        echo "IPN request successfully processed.";
-    } else {
-        // Invalid IPN request, handle the error
-        echo "IPN request error: " . $ipnResponse['message'];
-    }
+    dd($ipnResponse) // 
 } catch (\Exception $e) {
-    echo "Error: " . $e->getMessage();
+     dd("Error: " . $e->getMessage());
 }
 ```
 
