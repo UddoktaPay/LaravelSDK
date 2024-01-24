@@ -1,0 +1,21 @@
+{
+    "name": "uddoktapay/laravel-sdk",
+    "description": "UddoktaPay offers a range of payment automation solutions for small entrepreneurs in Bangladesh.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "UddoktaPay\\LaravelSDK\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "UddoktaPay Team",
+            "email": "info@uddoktapay.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.4.0"
+    }
+}
