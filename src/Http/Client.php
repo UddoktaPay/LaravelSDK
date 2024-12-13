@@ -41,7 +41,7 @@ class Client
     /**
      * Initialize payment checkout
      *
-     * @param  CheckoutRequest $request Request Data
+     * @param  CheckoutRequest  $request  Request Data
      * @return CheckoutResponse Response data
      *
      * @throws UddoktaPayException
@@ -51,43 +51,49 @@ class Client
         try {
             $response = $this->client->post('/api/checkout-v2', $request->build());
 
-            if (!$response->successful()) {
-                throw new UddoktaPayException('UddoktaPay API Error: ' . $response->body());
+            if (! $response->successful()) {
+                throw new UddoktaPayException('UddoktaPay API Error: '.$response->body());
             }
 
             return new CheckoutResponse($response->json());
         } catch (\Exception $e) {
-            throw new UddoktaPayException('UddoktaPay Error: ' . $e->getMessage());
+            throw new UddoktaPayException('UddoktaPay Error: '.$e->getMessage());
         }
     }
 
     /**
      * Verify payment status
-     * @param  string $invoiceId Invoice ID
+     *
+     * @param  \Illuminate\Http\Request  $request  The incoming request
      * @return VerifyResponse Response data
+     *
      * @throws UddoktaPayException
      */
-    public function verifyPayment(string $invoiceId): VerifyResponse
+    public function verifyPayment(Request $request): VerifyResponse
     {
         try {
+            if (! $request->has('invoice_id')) {
+                throw new UddoktaPayException('Missing Invoice ID in request.');
+            }
+
             $response = $this->client->post('/api/verify-payment', [
-                'invoice_id' => $invoiceId,
+                'invoice_id' => $request->invoice_id,
             ]);
 
-            if (!$response->successful()) {
-                throw new UddoktaPayException('UddoktaPay Verification Error: ' . $response->body());
+            if (! $response->successful()) {
+                throw new UddoktaPayException('UddoktaPay Verification Error: '.$response->body());
             }
 
             return new VerifyResponse($response->json());
         } catch (\Exception $e) {
-            throw new UddoktaPayException('UddoktaPay Verification Error: ' . $e->getMessage());
+            throw new UddoktaPayException('UddoktaPay Verification Error: '.$e->getMessage());
         }
     }
 
     /**
      * Validate IPN request
      *
-     * @param  \Illuminate\Http\Request $request  The incoming webhook request
+     * @param  \Illuminate\Http\Request  $request  The incoming webhook request
      * @return VerifyResponse Response data
      *
      * @throws UddoktaPayException If validation fails
@@ -96,7 +102,7 @@ class Client
     {
         try {
             // Check if the required headers are present
-            if (!$request->hasHeader('RT-UDDOKTAPAY-API-KEY')) {
+            if (! $request->hasHeader('RT-UDDOKTAPAY-API-KEY')) {
                 throw new UddoktaPayException('Missing UddoktaPay API Key in headers');
             }
 
@@ -115,24 +121,24 @@ class Client
             // Decode JSON payload
             $ipnData = json_decode($rawPost, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new UddoktaPayException('Invalid JSON data: ' . json_last_error_msg());
+                throw new UddoktaPayException('Invalid JSON data: '.json_last_error_msg());
             }
 
             // Validate status
-            if (!in_array($ipnData['status'], ['COMPLETED', 'PENDING', 'FAILED'])) {
+            if (! in_array($ipnData['status'], ['COMPLETED', 'PENDING', 'FAILED'])) {
                 throw new UddoktaPayException('Invalid payment status');
             }
 
             return $this->verifyPayment($ipnData['invoice_id']);
         } catch (\Exception $e) {
-            throw new UddoktaPayException('IPN Validation Error: ' . $e->getMessage());
+            throw new UddoktaPayException('IPN Validation Error: '.$e->getMessage());
         }
     }
 
     /**
      * Refund Payment
      *
-     * @param  RefundRequest $request Request Data
+     * @param  RefundRequest  $request  Request Data
      * @return RefundResponse Response data
      *
      * @throws UddoktaPayException
@@ -142,13 +148,13 @@ class Client
         try {
             $response = $this->client->post('/api/refund-payment', $request->build());
 
-            if (!$response->successful()) {
-                throw new UddoktaPayException('UddoktaPay Refund Error: ' . $response->body());
+            if (! $response->successful()) {
+                throw new UddoktaPayException('UddoktaPay Refund Error: '.$response->body());
             }
 
             return new RefundResponse($response->json());
         } catch (\Exception $e) {
-            throw new UddoktaPayException('UddoktaPay Refund Error: ' . $e->getMessage());
+            throw new UddoktaPayException('UddoktaPay Refund Error: '.$e->getMessage());
         }
     }
 }

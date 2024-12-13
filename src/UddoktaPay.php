@@ -27,9 +27,9 @@ class UddoktaPay
         return $this->client->createPayment($request);
     }
 
-    public function verify(string $invoiceId): VerifyResponse
+    public function verify(Request $request): VerifyResponse
     {
-        return $this->client->verifyPayment($invoiceId);
+        return $this->client->verifyPayment($request);
     }
 
     public function ipn(Request $request): VerifyResponse
