@@ -4,6 +4,8 @@
 
 The UddoktaPay Laravel SDK allows you to seamlessly integrate the UddoktaPay payment gateway into your Laravel applications.
 
+---
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -12,118 +14,172 @@ The UddoktaPay Laravel SDK allows you to seamlessly integrate the UddoktaPay pay
   - [Initializing a Payment](#initializing-a-payment)
   - [Verifying a Payment](#verifying-a-payment)
   - [Handling IPN Notifications](#handling-ipn-notifications-optional)
+  - [Processing Refunds](#processing-refunds-optional)
+- [Routes](#routes)
 - [Notes](#notes)
 
+---
+
 ## Installation
-Run the following command in your project directory:
+
+Install the UddoktaPay Laravel SDK using Composer:
 
 ```bash
 composer require uddoktapay/laravel-sdk
 ```
+
+---
+
 ## Usage
 
 ### Initializing the SDK
 
+Add your UddoktaPay API credentials to the `.env` file:
+
+```env
+UDDOKTAPAY_API_KEY=your_api_key
+UDDOKTAPAY_API_URL=https://sandbox.uddoktapay.com/api/checkout-v2
+```
+
+Use the following code to initialize the SDK:
 
 ```php
 use UddoktaPay\LaravelSDK\UddoktaPay;
+
+$uddoktapay = UddoktaPay::make(env('UDDOKTAPAY_API_KEY'), env('UDDOKTAPAY_API_URL'));
 ```
+
+---
 
 ### Initializing a Payment
 
-To initiate a payment, follow these steps:
-
-1. Initialize the `UddoktaPay` class with your API key and base URL:
+To initiate a payment:
 
 ```php
-$apiKey = "982d381360a69d419689740d9f2e26ce36fb7a50"; // API KEY
-$apiBaseURL = "https://sandbox.uddoktapay.com/api/checkout-v2"; // API URL
-$uddoktaPay = new UddoktaPay($apiKey, $apiBaseURL);
-```
-
-2. Prepare payment request data and initiate payment:
-
-```php
-// Example request data for initializing a payment
-$requestData = [
-    'full_name'     => "John Doe",
-    'email'         => "test@test.com",
-    'amount'        => 10,
-    'metadata'      => [
-        'example_metadata_key' => "example_metadata_value",
-        // ... Add more key-value pairs for dynamic metadata ...
-    ],
-    'redirect_url'  => 'http://localhost/success.php', // add your success route
-    'return_type'   => 'GET',
-    'cancel_url'    => 'http://localhost/cancel.php', // add your cancel route
-    'webhook_url'   => 'http://localhost/ipn.php', // add your ipn route
-];
+use UddoktaPay\LaravelSDK\Requests\CheckoutRequest;
 
 try {
-    $paymentUrl = $uddoktaPay->initPayment($requestData);
-    return redirect($paymentUrl);
-} catch (\Exception $e) {
-     dd("Initialization Error: " . $e->getMessage());
+    $checkoutRequest = CheckoutRequest::make()
+        ->setFullName('John Doe')
+        ->setEmail('john@doe.com')
+        ->setAmount('10')
+        ->addMetadata('order_id', '12345')
+        ->setRedirectUrl(route('uddoktapay.verify'))
+        ->setCancelUrl(route('uddoktapay.cancel'))
+        ->setWebhookUrl(route('uddoktapay.ipn'));
+
+    $response = $uddoktapay->checkout($checkoutRequest);
+
+    if ($response->failed()) {
+        dd($response->message());
+    }
+
+    return redirect($response->paymentURL());
+} catch (\UddoktaPay\LaravelSDK\Exceptions\UddoktaPayException $e) {
+    dd("Initialization Error: " . $e->getMessage());
 }
 ```
 
-
-#### Available API Types
-
-The `initPayment` method allows you to specify the API type as the second parameter. The available options are:
-
-- `checkout`: Basic checkout API (IPN notification only).
-- `checkout-v2`: Advanced checkout API (default, Success Page notification only).
-- `checkout/global`: Global basic checkout API (IPN notification only).
-- `checkout-v2/global`: Global advanced checkout API (Success Page notification only).
-
-
+---
 
 ### Verifying a Payment
 
-To verify a payment, follow these steps:
-
-1. Initialize the `UddoktaPay` class as shown in the previous steps.
-
-2. Get the invoice ID from the payment success page:
-
-```php
-$invoiceId = $request->invoice_id;
-```
-
-3. Verify the payment:
+After the payment is complete, verify it using the `VerifyResponse` class to understand the structure and available methods for processing the response:
 
 ```php
 try {
-    $response = $uddoktaPay->verifyPayment($invoiceId);
-    dd($response); // Display the verification response
-} catch (\Exception $e) {
+    $response = $uddoktapay->verify($request);
+
+    if ($response->success()) {
+        // Handle successful status
+        dd($response->toArray()); // Handle success
+    } elseif ($response->pending()) {
+        // Handle pending status
+    } elseif ($response->failed()) {
+        // Handle failure
+    }
+} catch (\UddoktaPay\LaravelSDK\Exceptions\UddoktaPayException $e) {
     dd("Verification Error: " . $e->getMessage());
 }
 ```
 
+---
+
 ### Handling IPN Notifications (Optional)
 
-To handle IPN (Instant Payment Notification) requests, follow these steps:
-
-1. Initialize the `UddoktaPay` class as shown in the previous steps.
-
-2. Use the `executePayment` method:
+To handle Instant Payment Notifications (IPN):
 
 ```php
 try {
-    $ipnResponse = $uddoktaPay->executePayment();
-    dd($ipnResponse);
-} catch (\Exception $e) {
-     dd("Error: " . $e->getMessage());
+    $response = $uddoktapay->ipn($request);
+
+    if ($response->success()) {
+        // Handle successful IPN
+    } elseif ($response->pending()) {
+        // Handle pending IPN
+    } elseif ($response->failed()) {
+        // Handle failed IPN
+    }
+} catch (\UddoktaPay\LaravelSDK\Exceptions\UddoktaPayException $e) {
+    dd("IPN Error: " . $e->getMessage());
 }
 ```
 
+---
 
+### Processing Refunds (Optional)
+
+To process a refund:
+
+```php
+use UddoktaPay\LaravelSDK\Requests\RefundRequest;
+
+try {
+    $refundRequest = RefundRequest::make()
+        ->setAmount('10')
+        ->setTransactionId('12345')
+        ->setPaymentMethod('bkash')
+        ->setProductName('Sample Product')
+        ->setReason('Customer Request');
+
+    $response = $uddoktapay->refund($refundRequest);
+
+    if ($response->success()) {
+        // Handle refund success
+    } elseif ($response->failed()) {
+        // Handle refund failure
+    }
+} catch (\UddoktaPay\LaravelSDK\Exceptions\UddoktaPayException $e) {
+    dd("Refund Error: " . $e->getMessage());
+}
+```
+
+---
+
+## Routes
+
+Add the following routes to your `web.php` file:
+
+```php
+use App\Http\Controllers\UddoktaPayController;
+
+Route::get('/checkout', [UddoktaPayController::class, 'checkout'])->name('uddoktapay.checkout');
+Route::get('/verify', [UddoktaPayController::class, 'verify'])->name('uddoktapay.verify');
+Route::get('/cancel', [UddoktaPayController::class, 'cancel'])->name('uddoktapay.cancel');
+Route::post('/ipn', [UddoktaPayController::class, 'ipn'])->name('uddoktapay.ipn');
+Route::post('/refund', [UddoktaPayController::class, 'refund'])->name('uddoktapay.refund');
+```
+
+---
 
 ## Notes
 
-- Replace `"API KEY"` with your actual API key.
-- Adjust the request data and other details according to your project requirements.
-- The `metadata` field is dynamic; you can add multiple key-value pairs as needed.
-- Make sure to handle errors using try-catch blocks as demonstrated above.
+- Replace placeholders like `your_api_key` with actual credentials.
+- Use appropriate routes for success, cancel, and IPN handling.
+- Always wrap SDK calls with `try-catch` to handle errors effectively.
+
+---
+
+## License
+
+This project is open-source and available under the [MIT License](https://opensource.org/licenses/MIT).
