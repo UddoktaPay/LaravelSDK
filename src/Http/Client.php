@@ -2,6 +2,7 @@
 
 namespace UddoktaPay\LaravelSDK\Http;
 
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use UddoktaPay\LaravelSDK\Concerns\Normalize;
@@ -16,7 +17,7 @@ class Client
 {
     use Normalize;
 
-    private Http $client;
+    private PendingRequest $client;
 
     private string $apiKey;
 

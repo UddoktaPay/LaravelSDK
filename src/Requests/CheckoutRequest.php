@@ -83,6 +83,11 @@ class CheckoutRequest
             }
         }
 
+        // Add metadata if exists
+        if (! empty($this->metadata)) {
+            $this->data['metadata'] = $this->metadata;
+        }
+
         return $this->data;
     }
 
