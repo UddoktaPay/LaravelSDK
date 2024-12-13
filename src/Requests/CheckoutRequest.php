@@ -75,17 +75,17 @@ class CheckoutRequest
     {
         $this->data['return_type'] = 'get';
 
+        // Add metadata if exists
+        if (! empty($this->metadata)) {
+            $this->data['metadata'] = $this->metadata;
+        }
+
         // Required fields validation
         $requiredFields = ['full_name', 'email', 'amount', 'metadata', 'redirect_url', 'cancel_url'];
         foreach ($requiredFields as $field) {
             if (! isset($this->data[$field])) {
                 throw new UddoktaPayException("Missing required field: {$field}");
             }
-        }
-
-        // Add metadata if exists
-        if (! empty($this->metadata)) {
-            $this->data['metadata'] = $this->metadata;
         }
 
         return $this->data;
