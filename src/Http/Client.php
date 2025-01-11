@@ -26,7 +26,7 @@ class Client
     public function __construct(string $apiKey, string $apiURL)
     {
         $this->apiKey = $apiKey;
-        $this->apiURL = Normalize::build($apiURL);
+        $this->apiURL = $this->normalizeURL($apiURL);
 
         $this->client = Http::baseUrl($this->apiURL)
             ->withHeaders([

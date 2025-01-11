@@ -9,7 +9,7 @@ trait Normalize
     /**
      * Normalize URL to get base URL without API path
      */
-    public static function build(string $url): string
+    public function normalizeURL(string $url): string
     {
         // Parse the URL
         $parsedUrl = parse_url($url);
