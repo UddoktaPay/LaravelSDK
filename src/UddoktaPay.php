@@ -27,6 +27,11 @@ class UddoktaPay
         return $this->client->createPayment($request);
     }
 
+    public function checkoutGlobal(CheckoutRequest $request): CheckoutResponse
+    {
+        return $this->client->createGlobalPayment($request);
+    }
+
     public function verify(Request $request): VerifyResponse
     {
         return $this->client->verifyPayment($request);

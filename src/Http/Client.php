@@ -62,6 +62,29 @@ class Client
     }
 
     /**
+     * Initialize global payment checkout
+     *
+     * @param  CheckoutRequest  $request  Request Data
+     * @return CheckoutResponse Response data
+     *
+     * @throws UddoktaPayException
+     */
+    public function createGlobalPayment(CheckoutRequest $request): CheckoutResponse
+    {
+        try {
+            $response = $this->client->post('/api/checkout-v2/global', $request->build());
+
+            if (! $response->successful()) {
+                throw new UddoktaPayException('UddoktaPay API Error: '.$response->body());
+            }
+
+            return new CheckoutResponse($response->json());
+        } catch (\Exception $e) {
+            throw new UddoktaPayException('UddoktaPay Error: '.$e->getMessage());
+        }
+    }
+
+    /**
      * Verify payment status
      *
      * @param  \Illuminate\Http\Request  $request  The incoming request

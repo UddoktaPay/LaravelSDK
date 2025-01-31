@@ -51,7 +51,7 @@ $uddoktapay = UddoktaPay::make(env('UDDOKTAPAY_API_KEY'), env('UDDOKTAPAY_API_UR
 
 ---
 
-### Initializing a Payment
+### Initializing a Payment (Bangladeshi Methods)
 
 To initiate a payment:
 
@@ -69,6 +69,37 @@ try {
         ->setWebhookUrl(route('uddoktapay.ipn'));
 
     $response = $uddoktapay->checkout($checkoutRequest);
+
+    if ($response->failed()) {
+        dd($response->message());
+    }
+
+    return redirect($response->paymentURL());
+} catch (\UddoktaPay\LaravelSDK\Exceptions\UddoktaPayException $e) {
+    dd("Initialization Error: " . $e->getMessage());
+}
+```
+
+---
+
+### Initializing a Payment (Global Methods)
+
+To initiate a payment:
+
+```php
+use UddoktaPay\LaravelSDK\Requests\CheckoutRequest;
+
+try {
+    $checkoutRequest = CheckoutRequest::make()
+        ->setFullName('John Doe')
+        ->setEmail('john@doe.com')
+        ->setAmount('10')
+        ->addMetadata('order_id', '12345')
+        ->setRedirectUrl(route('uddoktapay.verify'))
+        ->setCancelUrl(route('uddoktapay.cancel'))
+        ->setWebhookUrl(route('uddoktapay.ipn'));
+
+    $response = $uddoktapay->checkoutGlobal($checkoutRequest);
 
     if ($response->failed()) {
         dd($response->message());
