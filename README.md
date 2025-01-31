@@ -11,7 +11,7 @@ The UddoktaPay Laravel SDK allows you to seamlessly integrate the UddoktaPay pay
 - [Installation](#installation)
 - [Usage](#usage)
   - [Initializing the SDK](#initializing-the-sdk)
-  - [Initializing a Payment](#initializing-a-payment)
+  - [Initializing a Payment](#initializing-a-payment-bangladeshi-methods)
   - [Verifying a Payment](#verifying-a-payment)
   - [Handling IPN Notifications](#handling-ipn-notifications-optional)
   - [Processing Refunds](#processing-refunds-optional)
